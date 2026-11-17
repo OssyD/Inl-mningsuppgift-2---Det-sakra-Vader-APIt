@@ -1,15 +1,24 @@
 using Spectre.Console;
 using WeatherApp.App.Helpers;
 using WeatherApp.App.Menus;
-using WeatherApp.Domain.Interfaces;
+using WeatherApp.Domain.Entities;
+using WeatherApp.Domain.Models;
+using WeatherApp.Services.Interfaces;
 
 namespace WeatherApp.App.Views;
 
-public class StatisticsView(IWeatherDataRepository repository)
+public class StatisticsView(IStatisticsService statisticsService)
 {
     public async Task ShowAsync()
     {
-        var stations = await repository.GetStationNamesAsync();
+        var stationsResult = await statisticsService.GetStationNamesAsync();
+        if (!stationsResult.IsSuccess)
+        {
+            ConsoleHelper.ShowError(stationsResult.Error!.Message);
+            return;
+        }
+
+        var stations = stationsResult.Value!;
         if (stations.Count == 0)
         {
             ConsoleHelper.ShowWarning("No measurements stored yet. Import data first.");
@@ -28,8 +37,25 @@ public class StatisticsView(IWeatherDataRepository repository)
             return;
 
         AnsiConsole.Clear();
-        await ShowMeasurementsAsync(selected);
-        await ShowStationStatisticsAsync(selected);
+
+        var measurementsResult = await statisticsService.GetMeasurementsAsync(selected);
+        if (!measurementsResult.IsSuccess)
+        {
+            ConsoleHelper.ShowError(measurementsResult.Error!.Message);
+            return;
+        }
+
+        ShowMeasurements(selected, measurementsResult.Value!);
+
+        var statisticsResult = await statisticsService.GetStatisticsAsync(selected);
+        if (!statisticsResult.IsSuccess)
+        {
+            ConsoleHelper.ShowError(statisticsResult.Error!.Message);
+            return;
+        }
+
+        if (statisticsResult.Value is not null)
+            ShowStatistics(statisticsResult.Value);
     }
 
     private static void ShowStations(IReadOnlyList<string> stations)
@@ -38,17 +64,13 @@ public class StatisticsView(IWeatherDataRepository repository)
         table.AddColumn("Station");
 
         foreach (var station in stations)
-        {
             table.AddRow(Markup.Escape(station));
-        }
 
         AnsiConsole.Write(table);
     }
 
-    private async Task ShowMeasurementsAsync(string stationName)
+    private static void ShowMeasurements(string stationName, IReadOnlyList<WeatherDataPoint> measurements)
     {
-        var measurements = await repository.GetByStationAsync(stationName);
-
         var table = new Table().RoundedBorder().Title($"[bold]Measurements for {Markup.Escape(stationName)}[/]");
         table.AddColumn("Timestamp");
         table.AddColumn(new TableColumn("Temperature (°C)").RightAligned());
@@ -67,12 +89,8 @@ public class StatisticsView(IWeatherDataRepository repository)
         AnsiConsole.Write(table);
     }
 
-    private async Task ShowStationStatisticsAsync(string stationName)
+    private static void ShowStatistics(StationStatistics statistics)
     {
-        var statistics = await repository.GetStatisticsAsync(stationName);
-        if (statistics is null)
-            return;
-
         var table = new Table().RoundedBorder().Title("[bold]Statistics[/]");
         table.AddColumn("Measurements");
         table.AddColumn(new TableColumn("Max (°C)").RightAligned());

@@ -1,10 +1,17 @@
+using Microsoft.Extensions.DependencyInjection;
 using WeatherApp.App;
-using WeatherApp.App.Views;
-using WeatherApp.Infrastructure.Data;
-using WeatherApp.Infrastructure.Repositories;
+using WeatherApp.Services;
 
-await using var context = new WeatherDbContext();
-var repository = new WeatherDataRepository(context);
+var services = new ServiceCollection()
+    .AddServices()
+    .AddViews();
 
-var app = new WeatherMonitorApp(new StatisticsView(repository));
+await using var provider = services.BuildServiceProvider(new ServiceProviderOptions
+{
+    ValidateOnBuild = true,
+    ValidateScopes = true
+});
+await using var scope = provider.CreateAsyncScope();
+
+var app = scope.ServiceProvider.GetRequiredService<WeatherMonitorApp>();
 await app.RunAsync();
