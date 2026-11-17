@@ -4,13 +4,26 @@ using System.Collections.Generic;
 using System.Text;
 using WeatherApp.Domain.Entities;
 using WeatherApp.Domain.Results;
+using WeatherApp.Domain.Interfaces;
+using WeatherApp.Services.Helpers;
 using WeatherApp.Services.Interfaces;
 
 namespace WeatherApp.Services.CSV
 {
-    internal class CSVService(IBadDataLogger badDataLogger) : ICSVService
+    internal class CSVService(IBadDataLogger badDataLogger, IWeatherDataRepository dataRepository) : ICSVService
     {
-        public async Task<Result<List<WeatherDataPoint>>> ReadCSVAsync()
+        public async Task<Result<int>> ImportCSVAsync()
+        {
+            var data = await ReadCSVAsync();
+            if (!data.IsSuccess)
+                return Result<int>.Failure(data.Error!);
+
+            var points = data.Value!;
+
+            return await DatabaseCall.ExecuteAsync(() => dataRepository.AddNewAsync(points));
+        }
+
+        private async Task<Result<List<WeatherDataPoint>>> ReadCSVAsync()
         {
             var weatherDataPoints = new List<WeatherDataPoint>();
             var rejected = new List<string>();
@@ -44,7 +57,7 @@ namespace WeatherApp.Services.CSV
             }
             catch (Exception ex)
             {
-                return Result<List<WeatherDataPoint>>.Failure(new Error(ErrorType.CSVReadError, "An error occurred while reading the CSV file.", ex));
+                return Result<List<WeatherDataPoint>>.Failure(new Error(ErrorType.FileAccess, "An error occurred while reading the CSV file.", ex));
             }
 
             return Result<List<WeatherDataPoint>>.Success(weatherDataPoints);

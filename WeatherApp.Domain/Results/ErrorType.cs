@@ -8,5 +8,4 @@ public enum ErrorType
     Network,
     Database,
     Unexpected,
-    CSVReadError
 }

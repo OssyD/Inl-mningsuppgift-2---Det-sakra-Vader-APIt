@@ -8,6 +8,6 @@ namespace WeatherApp.Services.Interfaces
 {
     public interface ICSVService
     {
-        Task<Result<List<WeatherDataPoint>>> ReadCSVAsync();   
+        Task<Result<int>> ImportCSVAsync();
     }
 }

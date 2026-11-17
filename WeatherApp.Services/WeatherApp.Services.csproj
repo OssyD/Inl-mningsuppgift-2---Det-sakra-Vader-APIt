@@ -7,7 +7,6 @@
   <ItemGroup>
     <ProjectReference Include="..\WeatherApp.Domain\WeatherApp.Domain.csproj" />
     <ProjectReference Include="..\WeatherApp.Infrastructure\WeatherApp.Infrastructure.csproj" />
-    <ProjectReference Include="..\WeatherApp.Integration\WeatherApp.Integration.csproj" />
   </ItemGroup>
 
 </Project>
