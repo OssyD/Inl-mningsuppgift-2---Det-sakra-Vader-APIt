@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using WeatherApp.Infrastructure;
+using WeatherApp.Services.CSV;
 using WeatherApp.Services.Interfaces;
 
 namespace WeatherApp.Services;
@@ -10,6 +11,7 @@ public static class DependencyInjection
     {
         services.AddInfrastructure();
         services.AddScoped<IStatisticsService, StatisticsService>();
+        services.AddScoped<ICSVService, CSVService>();
 
         return services;
     }

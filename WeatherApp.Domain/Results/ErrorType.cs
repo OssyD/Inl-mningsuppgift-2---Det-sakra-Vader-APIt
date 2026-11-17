@@ -7,5 +7,6 @@ public enum ErrorType
     FileAccess,
     Network,
     Database,
-    Unexpected
+    Unexpected,
+    CSVReadError
 }
