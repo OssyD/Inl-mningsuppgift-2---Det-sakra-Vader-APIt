@@ -1,11 +1,13 @@
+using CsvHelper;
 using Spectre.Console;
 using WeatherApp.App.Helpers;
 using WeatherApp.App.Menus;
 using WeatherApp.App.Views;
+using WeatherApp.Services.Interfaces;
 
 namespace WeatherApp.App;
 
-public class WeatherMonitorApp(StatisticsView statisticsView)
+public class WeatherMonitorApp(StatisticsView statisticsView, CsvView csvView)
 {
     public async Task RunAsync()
     {
@@ -29,7 +31,7 @@ public class WeatherMonitorApp(StatisticsView statisticsView)
             {
                 switch (choice)
                 {
-                    case MenuOptions.ImportFromFile: ConsoleHelper.ShowWarning("Not implemented yet."); break;
+                    case MenuOptions.ImportFromFile: await csvView.ShowAsync(); break;
                     case MenuOptions.FetchFromApi: ConsoleHelper.ShowWarning("Not implemented yet."); break;
                     case MenuOptions.ShowStatistics: await statisticsView.ShowAsync(); break;
                     case MenuOptions.Exit: running = false; break;

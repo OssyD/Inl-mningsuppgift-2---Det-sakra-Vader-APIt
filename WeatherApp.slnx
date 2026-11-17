@@ -2,5 +2,5 @@
   <Project Path="WeatherApp.App/WeatherApp.App.csproj" />
   <Project Path="WeatherApp.Domain/WeatherApp.Domain.csproj" />
   <Project Path="WeatherApp.Infrastructure/WeatherApp.Infrastructure.csproj" />
-  <Project Path="WeatherApp.Integration/WeatherApp.Integration.csproj" />
+  <Project Path="WeatherApp.Services/WeatherApp.Services.csproj" />
 </Solution>

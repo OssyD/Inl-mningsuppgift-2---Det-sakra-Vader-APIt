@@ -5,17 +5,11 @@ namespace WeatherApp.Domain.Interfaces;
 
 public interface IWeatherDataRepository
 {
-    Task<HashSet<(string StationName, DateTime Timestamp)>> GetExistingKeysAsync(
-        IReadOnlyCollection<WeatherDataPoint> candidates,
-        CancellationToken cancellationToken = default);
+    Task<int> AddNewAsync(IReadOnlyCollection<WeatherDataPoint> points);
 
-    Task AddRangeAsync(IEnumerable<WeatherDataPoint> points, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<string>> GetStationNamesAsync();
 
-    Task<IReadOnlyList<string>> GetStationNamesAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<WeatherDataPoint>> GetByStationAsync(string stationName);
 
-    Task<IReadOnlyList<WeatherDataPoint>> GetByStationAsync(
-        string stationName,
-        CancellationToken cancellationToken = default);
-
-    Task<StationStatistics?> GetStatisticsAsync(string stationName, CancellationToken cancellationToken = default);
+    Task<StationStatistics?> GetStatisticsAsync(string stationName);
 }
