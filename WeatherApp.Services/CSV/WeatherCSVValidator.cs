@@ -1,4 +1,5 @@
 using System.Globalization;
+using WeatherApp.Domain.Constants;
 using WeatherApp.Domain.Entities;
 using WeatherApp.Domain.Results;
 
@@ -7,13 +8,12 @@ namespace WeatherApp.Services.CSV;
 internal static class WeatherCSVValidator
 {
     private const NumberStyles Number = NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint;
-
-    // Rimlighetskontroll: fångar sensorfel som 999.9 (Sverige-rekord ca −53 / +38 °C)
     private const decimal MinTemperature = -60m;
     private const decimal MaxTemperature = 60m;
 
     public static Result<WeatherDataPoint> Validate(WeatherCSV row)
     {
+
         if (string.IsNullOrWhiteSpace(row.StationName))
             return Fail("Stationsnamn saknas");
 
@@ -36,13 +36,12 @@ internal static class WeatherCSVValidator
             Timestamp = timestamp,
             Temperature = temperature,
             Humidity = humidity,
-            DataSource = "CSV"
+            DataSource = DataSourceNames.CsvFile
         });
     }
 
     private static bool TryParseDecimal(string value, out decimal result) =>
-        decimal.TryParse(value, Number, CultureInfo.InvariantCulture, out result);
-
+        decimal.TryParse(value.Replace(',', '.'), Number, CultureInfo.InvariantCulture, out result);
     private static Result<WeatherDataPoint> Fail(string reason) =>
         Result<WeatherDataPoint>.Failure(new Error(ErrorType.Validation, reason));
 }

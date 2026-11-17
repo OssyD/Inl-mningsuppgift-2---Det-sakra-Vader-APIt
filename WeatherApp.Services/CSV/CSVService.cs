@@ -8,35 +8,46 @@ using WeatherApp.Services.Interfaces;
 
 namespace WeatherApp.Services.CSV
 {
-    internal class CSVService : ICSVService
+    internal class CSVService(IBadDataLogger badDataLogger) : ICSVService
     {
-        public Task<Result<List<WeatherDataPoint>>> ReadCSVAsync()
+        public async Task<Result<List<WeatherDataPoint>>> ReadCSVAsync()
         {
             var weatherDataPoints = new List<WeatherDataPoint>();
+            var rejected = new List<string>();
+            var filePath = Path.Combine(AppContext.BaseDirectory, "Data", "weather_data.csv");
+
+            var options = CsvReaderOptions.For<WeatherCSV>() with
+            {
+                Separator = '\t',
+                TrackLineNumbers = true,
+                FieldCountMismatch = CsvFieldCountHandling.Allow,
+                MissingField = CsvMissingFieldHandling.ReturnEmpty
+            };
             try
             {
-                var filePath = Path.Combine(AppContext.BaseDirectory, "Data", "weather_data.csv");
-                using var reader = CsvReader.FromFile(filePath);
+                using var reader = CsvReader.FromFile(filePath, options);
 
-                foreach(var row in reader.GetRecords<WeatherCSV>())
+                while (await reader.ReadAsync())
                 {
+                    var row = reader.GetRecord<WeatherCSV>();
+                    var rawLine = reader.Current.ToString();
+
                     var validationResult = WeatherCSVValidator.Validate(row);
+
                     if (validationResult.IsSuccess)
-                    {
                         weatherDataPoints.Add(validationResult.Value!);
-                    }
                     else
-                    {
-                        continue;
-                    }
+                        rejected.Add($"Line {reader.LineNumber}: {rawLine} | {validationResult.Error!.Message}");
+
+                    await badDataLogger.WriteAsync(rejected);
                 }
             }
             catch (Exception ex)
             {
-                return Task.FromResult(Result<List<WeatherDataPoint>>.Failure(new Error(ErrorType.CSVReadError, "An error occurred while reading the CSV file.", ex)));
+                return Result<List<WeatherDataPoint>>.Failure(new Error(ErrorType.CSVReadError, "An error occurred while reading the CSV file.", ex));
             }
 
-            return Task.FromResult(Result<List<WeatherDataPoint>>.Success(weatherDataPoints));
+            return Result<List<WeatherDataPoint>>.Success(weatherDataPoints);
         }
     }
 }
