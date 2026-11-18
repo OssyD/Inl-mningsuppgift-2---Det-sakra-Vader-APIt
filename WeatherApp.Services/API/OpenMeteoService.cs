@@ -14,7 +14,7 @@ namespace WeatherApp.Services.API
 {
     internal class OpenMeteoService(IConfiguration configuration, IBadDataLogger dataLogger, IWeatherDataRepository weatherDataRepository) : IOpenMeteoService
     {
-        public async Task<Result<List<WeatherDataPoint>>> GetWeatherFromOpenMeteo()
+        public async Task<Result<int>> GetWeatherFromOpenMeteo()
         {
             try
             {
@@ -30,18 +30,17 @@ namespace WeatherApp.Services.API
                 if (response == null)
                 {
                     await dataLogger.ErrorLogAsync("Received null response from OpenMeteo API.");
-                    return Result<List<WeatherDataPoint>>.Failure(new Error(ErrorType.NotFound, "Received null response from OpenMeteo API."));
+                    return Result<int>.Failure(new Error(ErrorType.NotFound, "Received null response from OpenMeteo API."));
                 }
 
                 var points = MapToWeatherDataPoints(response);
 
-                await DatabaseCall.ExecuteAsync(() => weatherDataRepository.AddNewAsync(points));
-                return Result<List<WeatherDataPoint>>.Success(MapToWeatherDataPoints(response));
+                return await DatabaseCall.ExecuteAsync(() => weatherDataRepository.AddNewAsync(points));
             }
             catch (Exception ex)
             {
                 await dataLogger.ErrorLogAsync($"Error fetching weather data: {ex}");
-                return Result<List<WeatherDataPoint>>.Failure(new Error(ErrorType.Network, $"Error fetching weather data: {ex.Message}"));
+                return Result<int>.Failure(new Error(ErrorType.Network, $"Error fetching weather data: {ex.Message}"));
             }
            
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Spectre.Console;
 using WeatherApp.App.Helpers;
 using WeatherApp.Services.Interfaces;
 
@@ -18,10 +19,7 @@ namespace WeatherApp.App.Views
                 return;
             }
 
-            foreach (var dataPoint in result.Value!)
-            {
-                Console.WriteLine($"Station: {dataPoint.StationName}, Time: {dataPoint.Timestamp}, Temperature: {dataPoint.Temperature}, Humidity: {dataPoint.Humidity}");
-            }
+            AnsiConsole.MarkupLine($"[green]{result.Value} new measurements saved.[/]");
         }
     }
 }

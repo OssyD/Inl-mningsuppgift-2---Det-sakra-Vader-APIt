@@ -4,6 +4,7 @@ using WeatherApp.Services.API;
 using WeatherApp.Services.CSV;
 using WeatherApp.Services.Interfaces;
 using WeatherApp.Services.Logging;
+using WeatherApp.Services.Statistics;
 
 namespace WeatherApp.Services;
 
