@@ -10,6 +10,7 @@ public static class DependencyInjection
     {
         services.AddTransient<StatisticsView>();
         services.AddTransient<CsvView>();
+        services.AddTransient<ApiView>();
         services.AddTransient<WeatherMonitorApp>();
 
         return services;

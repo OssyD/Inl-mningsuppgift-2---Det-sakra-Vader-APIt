@@ -1,4 +1,5 @@
 ﻿using CsvHelper;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,7 +11,7 @@ using WeatherApp.Services.Interfaces;
 
 namespace WeatherApp.Services.CSV
 {
-    internal class CSVService(IBadDataLogger badDataLogger, IWeatherDataRepository dataRepository) : ICSVService
+    internal class CSVService(IBadDataLogger badDataLogger, IWeatherDataRepository dataRepository, IConfiguration configuration) : ICSVService
     {
         public async Task<Result<int>> ImportCSVAsync()
         {
@@ -27,7 +28,7 @@ namespace WeatherApp.Services.CSV
         {
             var weatherDataPoints = new List<WeatherDataPoint>();
             var rejected = new List<string>();
-            var filePath = Path.Combine(AppContext.BaseDirectory, "Data", "weather_data.csv");
+            var filePath = Path.Combine(AppContext.BaseDirectory, configuration["FileImport:FilePath"]!);
 
             var options = CsvReaderOptions.For<WeatherCSV>() with
             {
@@ -51,9 +52,9 @@ namespace WeatherApp.Services.CSV
                         weatherDataPoints.Add(validationResult.Value!);
                     else
                         rejected.Add($"Line {reader.LineNumber}: {rawLine} | {validationResult.Error!.Message}");
-
-                    await badDataLogger.WriteAsync(rejected);
                 }
+
+                await badDataLogger.BadLogAsync(rejected);
             }
             catch (Exception ex)
             {

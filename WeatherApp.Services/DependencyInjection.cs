@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using WeatherApp.Infrastructure;
+using WeatherApp.Services.API;
 using WeatherApp.Services.CSV;
 using WeatherApp.Services.Interfaces;
 using WeatherApp.Services.Logging;
@@ -13,6 +14,7 @@ public static class DependencyInjection
         services.AddInfrastructure();
         services.AddScoped<IStatisticsService, StatisticsService>();
         services.AddScoped<ICSVService, CSVService>();
+        services.AddScoped<IOpenMeteoService, OpenMeteoService>();
         services.AddSingleton<IBadDataLogger, BadDataLogger>();
 
         return services;
