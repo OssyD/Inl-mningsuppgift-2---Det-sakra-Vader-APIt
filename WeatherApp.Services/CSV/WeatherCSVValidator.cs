@@ -9,7 +9,7 @@ internal static class WeatherCSVValidator
 {
     private const NumberStyles Number = NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint;
     private const decimal MinTemperature = -60m;
-    private const decimal MaxTemperature = 60m;
+    private const decimal MaxTemperature = 80m;
     private const decimal MinHumidity = 0m;
     private const decimal MaxHumidity = 100m;
 
