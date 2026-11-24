@@ -5,7 +5,7 @@ using WeatherApp.Domain.Results;
 using WeatherApp.Services.Helpers;
 using WeatherApp.Services.Interfaces;
 
-namespace WeatherApp.Services;
+namespace WeatherApp.Services.Statistics;
 
 public class StatisticsService(IWeatherDataRepository repository) : IStatisticsService
 {

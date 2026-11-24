@@ -96,12 +96,14 @@ public class StatisticsView(IStatisticsService statisticsService)
         table.AddColumn(new TableColumn("Max (°C)").RightAligned());
         table.AddColumn(new TableColumn("Min (°C)").RightAligned());
         table.AddColumn(new TableColumn("Average (°C)").RightAligned());
+        table.AddColumn("Period");
 
         table.AddRow(
             statistics.MeasurementCount.ToString(),
             $"[red]{statistics.MaxTemperature:0.0}[/]",
             $"[blue]{statistics.MinTemperature:0.0}[/]",
-            $"{statistics.AverageTemperature:0.0}");
+            $"{statistics.AverageTemperature:0.0}",
+            $"{statistics.FirstMeasurement:yyyy-MM-dd HH:mm} – {statistics.LastMeasurement:yyyy-MM-dd HH:mm}");
 
         AnsiConsole.Write(table);
     }

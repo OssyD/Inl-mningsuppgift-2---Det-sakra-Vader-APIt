@@ -7,7 +7,7 @@ using WeatherApp.Services.Interfaces;
 
 namespace WeatherApp.App;
 
-public class WeatherMonitorApp(StatisticsView statisticsView, CsvView csvView)
+public class WeatherMonitorApp(StatisticsView statisticsView, CsvView csvView, ApiView apiView)
 {
     public async Task RunAsync()
     {
@@ -32,7 +32,7 @@ public class WeatherMonitorApp(StatisticsView statisticsView, CsvView csvView)
                 switch (choice)
                 {
                     case MenuOptions.ImportFromFile: await csvView.ShowAsync(); break;
-                    case MenuOptions.FetchFromApi: ConsoleHelper.ShowWarning("Not implemented yet."); break;
+                    case MenuOptions.FetchFromApi: await apiView.ShowAsync(); break;
                     case MenuOptions.ShowStatistics: await statisticsView.ShowAsync(); break;
                     case MenuOptions.Exit: running = false; break;
                 }

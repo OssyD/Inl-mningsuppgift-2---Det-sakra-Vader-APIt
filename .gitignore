@@ -488,3 +488,4 @@ $RECYCLE.BIN/
 
 # Application output
 bad_data.log
+error.log

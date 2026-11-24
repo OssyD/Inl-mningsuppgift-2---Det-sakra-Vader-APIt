@@ -1,24 +1,39 @@
 # FailSafe WeatherMonitor
 
-Console application that imports weather measurements from a data file and the Open-Meteo API into SQL Server using EF Core.
+Console application that imports weather measurements from a CSV file and the Open-Meteo API into SQL Server using EF Core.
 
 ## Solution structure
 
 | Project | Responsibility |
 |---|---|
-| `WeatherApp.Domain` | Entities, result types and abstractions. No external dependencies. |
+| `WeatherApp.Domain` | Entities, result types and abstractions. |
 | `WeatherApp.Infrastructure` | EF Core `DbContext`, migrations and repositories. |
-| `WeatherApp.Services` | Application logic used by the UI: file import, API fetch, validation, bad data logging and statistics. The only layer that talks to Infrastructure. |
-| `WeatherApp.App` | Spectre.Console menus and views. References Services and Domain only, never the database layer. |
+| `WeatherApp.Services` | File import, API fetch, validation, logging and statistics. |
+| `WeatherApp.App` | Spectre.Console menus and views. |
 
 ## Getting started
 
-_TODO_
+1. Create the database (see below).
+2. Run `WeatherApp.App`.
+
+The local connection string (`(localdb)\MSSQLLocalDB`) is in `WeatherApp.App/appsettings.json`.
 
 ## Database migrations
 
-_TODO_
+```powershell
+dotnet ef database update --project WeatherApp.Infrastructure --startup-project WeatherApp.App
+```
 
 ## Cloud database (Azure SQL)
 
-_TODO_
+The Azure connection string is in `WeatherApp.App/appsettings.Production.json`. It is used when `DOTNET_ENVIRONMENT` is set to `Production`:
+
+```powershell
+$env:DOTNET_ENVIRONMENT = "Production"
+dotnet ef database update --project WeatherApp.Infrastructure --startup-project WeatherApp.App
+dotnet run --project WeatherApp.App
+```
+
+Tables migrated to Azure SQL Database:
+
+![Tables in Azure SQL Database](docs/azure-tables.png)
