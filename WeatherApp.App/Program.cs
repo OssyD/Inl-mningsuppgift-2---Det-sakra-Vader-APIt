@@ -1,25 +1,21 @@
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using WeatherApp.App;
 using WeatherApp.Services;
 
-var configuration = new ConfigurationBuilder()
-    .SetBasePath(AppContext.BaseDirectory)
-    .AddJsonFile("appsettings.json")
-    .Build();
+var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
+{
+    Args = args,
+    ContentRootPath = AppContext.BaseDirectory,
+    // Run against LocalDB unless DOTNET_ENVIRONMENT says otherwise (e.g. "Production" for Azure).
+    EnvironmentName = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? Environments.Development
+});
 
-var services = new ServiceCollection()
-    .AddSingleton<IConfiguration>(configuration)
-    .AddServices()
+builder.Services
+    .AddServices(builder.Configuration)
     .AddViews();
 
-await using var provider = services.BuildServiceProvider(new ServiceProviderOptions
-{
-    ValidateOnBuild = true,
-    ValidateScopes = true
-});
-await using var scope = provider.CreateAsyncScope();
+using var host = builder.Build();
+await using var scope = host.Services.CreateAsyncScope();
 
-var app = scope.ServiceProvider.GetRequiredService<WeatherMonitorApp>();
-
-await app.RunAsync();
+await scope.ServiceProvider.GetRequiredService<WeatherMonitorApp>().RunAsync();

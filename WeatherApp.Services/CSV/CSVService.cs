@@ -1,67 +1,71 @@
-﻿using CsvHelper;
+using CsvHelper;
 using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using WeatherApp.Domain.Entities;
-using WeatherApp.Domain.Results;
 using WeatherApp.Domain.Interfaces;
+using WeatherApp.Domain.Models;
+using WeatherApp.Domain.Results;
 using WeatherApp.Services.Helpers;
 using WeatherApp.Services.Interfaces;
 
-namespace WeatherApp.Services.CSV
+namespace WeatherApp.Services.CSV;
+
+internal class CSVService(IBadDataLogger badDataLogger, IWeatherDataRepository dataRepository, IConfiguration configuration) : ICSVService
 {
-    internal class CSVService(IBadDataLogger badDataLogger, IWeatherDataRepository dataRepository, IConfiguration configuration) : ICSVService
+    public async Task<Result<ImportSummary>> ImportCSVAsync()
     {
-        public async Task<Result<int>> ImportCSVAsync()
+        var data = await ReadCSVAsync();
+        if (!data.IsSuccess)
+            return Result<ImportSummary>.Failure(data.Error!);
+
+        var (points, rejectedCount) = data.Value;
+
+        var saved = await DatabaseCall.ExecuteAsync(() => dataRepository.AddNewAsync(points));
+        if (!saved.IsSuccess)
+            return Result<ImportSummary>.Failure(saved.Error!);
+
+        return Result<ImportSummary>.Success(new ImportSummary(saved.Value, rejectedCount));
+    }
+
+    private async Task<Result<(List<WeatherDataPoint> Points, int RejectedCount)>> ReadCSVAsync()
+    {
+        var weatherDataPoints = new List<WeatherDataPoint>();
+        var rejected = new List<string>();
+        var filePath = Path.Combine(AppContext.BaseDirectory, configuration["FileImport:FilePath"]!);
+
+        var options = CsvReaderOptions.For<WeatherCSV>() with
         {
-            var data = await ReadCSVAsync();
-            if (!data.IsSuccess)
-                return Result<int>.Failure(data.Error!);
+            Separator = '\t',
+            TrackLineNumbers = true,
+            FieldCountMismatch = CsvFieldCountHandling.Allow,
+            MissingField = CsvMissingFieldHandling.ReturnEmpty
+        };
 
-            var points = data.Value!;
-
-            return await DatabaseCall.ExecuteAsync(() => dataRepository.AddNewAsync(points));
-        }
-
-        private async Task<Result<List<WeatherDataPoint>>> ReadCSVAsync()
+        try
         {
-            var weatherDataPoints = new List<WeatherDataPoint>();
-            var rejected = new List<string>();
-            var filePath = Path.Combine(AppContext.BaseDirectory, configuration["FileImport:FilePath"]!);
+            using var reader = CsvReader.FromFile(filePath, options);
 
-            var options = CsvReaderOptions.For<WeatherCSV>() with
+            while (await reader.ReadAsync())
             {
-                Separator = '\t',
-                TrackLineNumbers = true,
-                FieldCountMismatch = CsvFieldCountHandling.Allow,
-                MissingField = CsvMissingFieldHandling.ReturnEmpty
-            };
-            try
-            {
-                using var reader = CsvReader.FromFile(filePath, options);
+                var row = reader.GetRecord<WeatherCSV>();
+                var rawLine = reader.Current.ToString();
 
-                while (await reader.ReadAsync())
-                {
-                    var row = reader.GetRecord<WeatherCSV>();
-                    var rawLine = reader.Current.ToString();
+                var validationResult = WeatherCSVValidator.Validate(row);
 
-                    var validationResult = WeatherCSVValidator.Validate(row);
-
-                    if (validationResult.IsSuccess)
-                        weatherDataPoints.Add(validationResult.Value!);
-                    else
-                        rejected.Add($"Line {reader.LineNumber}: {rawLine} | {validationResult.Error!.Message}");
-                }
-
-                await badDataLogger.BadLogAsync(rejected);
-            }
-            catch (Exception ex)
-            {
-                return Result<List<WeatherDataPoint>>.Failure(new Error(ErrorType.FileAccess, "An error occurred while reading the CSV file.", ex));
+                if (validationResult.IsSuccess)
+                    weatherDataPoints.Add(validationResult.Value!);
+                else
+                    rejected.Add($"Line {reader.LineNumber}: {rawLine} | {validationResult.Error!.Message}");
             }
 
-            return Result<List<WeatherDataPoint>>.Success(weatherDataPoints);
+            await badDataLogger.BadLogAsync(rejected);
         }
+        catch (Exception ex)
+        {
+            await badDataLogger.ErrorLogAsync($"Error reading CSV file: {ex}");
+            return Result<(List<WeatherDataPoint>, int)>.Failure(
+                new Error(ErrorType.FileAccess, "An error occurred while reading the CSV file.", ex));
+        }
+
+        return Result<(List<WeatherDataPoint>, int)>.Success((weatherDataPoints, rejected.Count));
     }
 }

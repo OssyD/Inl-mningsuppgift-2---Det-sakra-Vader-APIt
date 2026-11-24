@@ -10,6 +10,8 @@ internal static class WeatherCSVValidator
     private const NumberStyles Number = NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint;
     private const decimal MinTemperature = -60m;
     private const decimal MaxTemperature = 60m;
+    private const decimal MinHumidity = 0m;
+    private const decimal MaxHumidity = 100m;
 
     public static Result<WeatherDataPoint> Validate(WeatherCSV row)
     {
@@ -29,6 +31,9 @@ internal static class WeatherCSVValidator
 
         if (!TryParseDecimal(row.Humidity, out var humidity))
             return Fail($"Ogiltig luftfuktighet: '{row.Humidity}'");
+
+        if (humidity < MinHumidity || humidity > MaxHumidity)
+            return Fail($"Orimlig luftfuktighet: {humidity}");
 
         return Result<WeatherDataPoint>.Success(new WeatherDataPoint
         {
