@@ -34,6 +34,3 @@ dotnet ef database update --project WeatherApp.Infrastructure --startup-project 
 dotnet run --project WeatherApp.App
 ```
 
-Tables migrated to Azure SQL Database:
-
-![Tables in Azure SQL Database](docs/azure-tables.png)
