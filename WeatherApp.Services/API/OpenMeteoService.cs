@@ -15,7 +15,7 @@ internal class OpenMeteoService(IConfiguration configuration, IBadDataLogger dat
 {
     private static readonly HttpClient Client = new() { Timeout = TimeSpan.FromSeconds(15) };
 
-    public async Task<Result<ImportSummary>> GetWeatherFromOpenMeteo()
+    public async Task<Result<ApiFetchResult>> GetWeatherFromOpenMeteo()
     {
         OpenMeteoResponse? response;
         try
@@ -25,21 +25,21 @@ internal class OpenMeteoService(IConfiguration configuration, IBadDataLogger dat
         catch (Exception ex)
         {
             await dataLogger.ErrorLogAsync($"Error fetching weather data: {ex}");
-            return Result<ImportSummary>.Failure(
+            return Result<ApiFetchResult>.Failure(
                 new Error(ErrorType.Network, $"Could not reach Open-Meteo: {ex.Message}", ex));
         }
 
         if (response?.Hourly is null)
-            return Result<ImportSummary>.Failure(
+            return Result<ApiFetchResult>.Failure(
                 new Error(ErrorType.NotFound, "Open-Meteo did not return any hourly data."));
 
         var (points, rejected) = MapToWeatherDataPoints(response.Hourly);
 
         var saved = await DatabaseCall.ExecuteAsync(() => weatherDataRepository.AddNewAsync(points));
         if (!saved.IsSuccess)
-            return Result<ImportSummary>.Failure(saved.Error!);
+            return Result<ApiFetchResult>.Failure(saved.Error!);
 
-        return Result<ImportSummary>.Success(new ImportSummary(saved.Value, rejected));
+        return Result<ApiFetchResult>.Success(new ApiFetchResult(new ImportSummary(saved.Value, rejected), points));
     }
 
     private string BuildUrl()

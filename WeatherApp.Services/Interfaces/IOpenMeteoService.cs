@@ -5,5 +5,5 @@ namespace WeatherApp.Services.Interfaces;
 
 public interface IOpenMeteoService
 {
-    Task<Result<ImportSummary>> GetWeatherFromOpenMeteo();
+    Task<Result<ApiFetchResult>> GetWeatherFromOpenMeteo();
 }
