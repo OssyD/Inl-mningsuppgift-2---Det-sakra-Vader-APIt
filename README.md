@@ -34,3 +34,9 @@ dotnet ef database update --project WeatherApp.Infrastructure --startup-project 
 dotnet run --project WeatherApp.App
 ```
 
+### Proof of migration to Azure
+
+The tables (`WeatherDataPoints` and `__EFMigrationsHistory`) have been migrated to the Azure SQL database `WeatherMonitorDb` on `failsafeserver` with EF Core. The screenshot below is from the query editor in the Azure portal and shows the table with data imported from the Open-Meteo API.
+
+![WeatherDataPoints in Azure SQL Database](docs/images/azure-sql-weatherdatapoints.png)
+
