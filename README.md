@@ -1,32 +1,32 @@
 # FailSafe WeatherMonitor
 
-Console application that imports weather measurements from a CSV file and the Open-Meteo API into SQL Server using EF Core.
+Konsolapplikation som importerar vädermätningar från en CSV-fil och från Open-Meteo API till SQL Server med hjälp av EF Core.
 
-## Solution structure
+## Lösningens struktur
 
-| Project | Responsibility |
+| Projekt | Ansvar |
 |---|---|
-| `WeatherApp.Domain` | Entities, result types and abstractions. |
-| `WeatherApp.Infrastructure` | EF Core `DbContext`, migrations and repositories. |
-| `WeatherApp.Services` | File import, API fetch, validation, logging and statistics. |
-| `WeatherApp.App` | Spectre.Console menus and views. |
+| `WeatherApp.Domain` | Entiteter, resultattyper och abstraktioner. |
+| `WeatherApp.Infrastructure` | EF Core `DbContext`, migrationer och repositories. |
+| `WeatherApp.Services` | Filimport, API-anrop, validering, loggning och statistik. |
+| `WeatherApp.App` | Menyer och vyer med Spectre.Console. |
 
-## Getting started
+## Kom igång
 
-1. Create the database (see below).
-2. Run `WeatherApp.App`.
+1. Skapa databasen (se nedan).
+2. Kör `WeatherApp.App`.
 
-The local connection string (`(localdb)\MSSQLLocalDB`) is in `WeatherApp.App/appsettings.json`.
+Den lokala anslutningssträngen (`(localdb)\MSSQLLocalDB`) finns i `WeatherApp.App/appsettings.json`.
 
-## Database migrations
+## Databasmigrationer
 
 ```powershell
 dotnet ef database update --project WeatherApp.Infrastructure --startup-project WeatherApp.App
 ```
 
-## Cloud database (Azure SQL)
+## Molndatabas (Azure SQL)
 
-The Azure connection string is in `WeatherApp.App/appsettings.Production.json`. It is used when `DOTNET_ENVIRONMENT` is set to `Production`:
+Anslutningssträngen till Azure finns i `WeatherApp.App/appsettings.Production.json`. Den används när `DOTNET_ENVIRONMENT` är satt till `Production`:
 
 ```powershell
 $env:DOTNET_ENVIRONMENT = "Production"
@@ -34,9 +34,8 @@ dotnet ef database update --project WeatherApp.Infrastructure --startup-project 
 dotnet run --project WeatherApp.App
 ```
 
-### Proof of migration to Azure
+### Bevis på migrering till Azure
 
-The tables (`WeatherDataPoints` and `__EFMigrationsHistory`) have been migrated to the Azure SQL database `WeatherMonitorDb` on `failsafeserver` with EF Core. The screenshot below is from the query editor in the Azure portal and shows the table with data imported from the Open-Meteo API.
+Tabellerna (`WeatherDataPoints` och `__EFMigrationsHistory`) har migrerats med EF Core till Azure SQL-databasen `WeatherMonitorDb` på servern `failsafeserver`. Skärmdumpen nedan är tagen från frågeredigeraren i Azure-portalen och visar tabellen med data som hämtats från Open-Meteo API.
 
-![WeatherDataPoints in Azure SQL Database](docs/images/azure-sql-weatherdatapoints.png)
-
+![WeatherDataPoints i Azure SQL Database](docs/images/azure-sql-weatherdatapoints.png)
