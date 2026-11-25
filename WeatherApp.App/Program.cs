@@ -7,7 +7,6 @@ var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
 {
     Args = args,
     ContentRootPath = AppContext.BaseDirectory,
-    // Run against LocalDB unless DOTNET_ENVIRONMENT says otherwise (e.g. "Production" for Azure).
     EnvironmentName = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? Environments.Development
 });
 
